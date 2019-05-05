@@ -10,6 +10,7 @@ import plotly.graph_objs as go
 import plotly.offline
 from plotly import tools
 from concurrent.futures import ThreadPoolExecutor
+import threading
 
 
 # Alocação de Memória para Variáveis Utilizadas no Plot
@@ -193,7 +194,7 @@ def computer_data():
 
 # Definição do Thread para elaboração da armazenagem de dados em paralelo
 def run_threaded(computer_data):
-    executor = ThreadPoolExecutor(max_workers=8)
+    executor = threading.Thread(max_workers=8)
     executor.submit(computer_data)
 
 
@@ -349,7 +350,7 @@ def plot():
 
 def main():
     print(__file__ + " start!!")
-    executor = ThreadPoolExecutor(max_workers=None)
+    executor = ThreadPoolExecutor(max_workers=8)
     executor.submit(ekf_analysis)
 
 

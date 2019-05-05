@@ -350,7 +350,7 @@ def plot():
 
 def main():
     print(__file__ + " start!!")
-    executor = ProcessPoolExecutor(max_workers=None)
+    executor = ProcessPoolExecutor(max_workers=8)
     executor.submit(ekf_analysis)
 
 
