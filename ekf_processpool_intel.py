@@ -9,8 +9,8 @@ import schedule
 import plotly.graph_objs as go
 import plotly.offline
 from plotly import tools
-from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import ProcessPoolExecutor
+import threading
 
 
 # Alocação de Memória para Variáveis Utilizadas no Plot
@@ -19,9 +19,8 @@ time_dicc = {'time': []}
 memory_dicc = {'memory': []}
 
 # Contadores
-time_process_init = pt()  # Contador de processo
-time_script_init = timeit.default_timer()  # Contador Benchmark
-flag = 0  # Flag de rotina para plotar o gráfico apenas no final da execução
+process_init = pt()  # Contador de processo
+script_init = timeit.default_timer()  # Contador Benchmark
 
 
 # Estimation parameter of EKF
@@ -186,7 +185,7 @@ def computer_data():
     cpu_dicc['cpu4'] += [load[3]]
 
     # Append do tempo para Elaboração do Plot
-    time_list = [(timeit.default_timer())-time_script_init]
+    time_list = [(timeit.default_timer())-script_init]
     time_dicc['time'] += [time_list[0]]
     # Append da Memória para Elaboração do Plot
     memory_percent = [psu.virtual_memory()[2]]
@@ -195,8 +194,8 @@ def computer_data():
 
 # Definição do Thread para elaboração da armazenagem de dados em paralelo
 def run_threaded(computer_data):
-    executor = ThreadPoolExecutor(max_workers=8)
-    executor.submit(computer_data)
+    job_thread = threading.Thread(target=computer_data)
+    job_thread.start()
 
 
 # 0.5 seg para armazenagem de dados
@@ -218,6 +217,9 @@ def ekf_analysis():
     hxTrue = xTrue
     hxDR = xTrue
     hz = np.zeros((2, 1))
+    # Contadores para o Loop
+    process_loop_init = pt()  # Contador de processo
+    script_loop_init = timeit.default_timer()  # Contador Benchmark
 
     while SIM_TIME >= time:
         # print('Task SIMULATION assigned to thread:' +
@@ -249,8 +251,20 @@ def ekf_analysis():
             plt.grid(True)
             plt.pause(0.001)
 
-            if time >= 50:
-                plot()
+    # Finalização dos Contadores Loop
+    process_loop = pt() - process_loop_init
+    script_loop = timeit.default_timer() - script_loop_init
+    print("--------------------------------------------------")
+    print("Tempo do Processo Loop: ", process_loop)
+    print("Tempo do Script: Loop: ", script_loop, "\n")
+
+    process_end = pt() - process_init
+    script_end = timeit.default_timer() - script_init
+    print("----------------FINAL DA SIMULAÇÃO----------------")
+    print("Tempo do Processo Total: ", process_end)
+    print("Tempo do Script: Main: ", script_end, "\n")
+    print("--------------------------------------------------")
+    plot()
 
 
 def plot():
@@ -311,7 +325,7 @@ def plot():
     fig['layout'].update(height=800, width=1000,
                          title='CPU LOAD with Intel Full Distribution' +
                                ' for Python 3 (with Multiprocessing & ' +
-                               'Multithreading & Scheduling)',
+                               'Threading & Scheduling)',
                          xaxis=dict(title='Time (s)'),
                          yaxis=dict(title='Load (%)'),
                          )
@@ -326,8 +340,8 @@ def plot():
     fig.append_trace(trace4, 2, 1)
     fig['layout'].update(height=800, width=1000,
                          title='CPU Load with Intel Full Distribution' +
-                               ' for Python (with Multiprocessing & ' +
-                               ' Multithreading & Scheduling)',
+                               ' for Python (with Multiprocessing, ' +
+                               ' Threading & Scheduling)',
                          xaxis=dict(title='Time (s)'),
                          yaxis=dict(title='Load (%)'),
                          )

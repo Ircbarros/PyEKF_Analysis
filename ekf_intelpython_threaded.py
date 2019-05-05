@@ -38,11 +38,119 @@ cpu_dicc = {'cpu1': [], 'cpu2': [], 'cpu3': [], 'cpu4': []}
 time_dicc = {'time': []}
 memory_dicc = {'memory': []}
 
-# Contadores
-time_process_init = pt()  # Contador de processo
-time_script_init = timeit.default_timer()  # Contador Benchmark
+# Contadores para Programa Inteiro
+process_init = pt()  # Contador de processo
+script_init = timeit.default_timer()  # Contador Benchmark
 flag = 0  # Flag de rotina para plotar o gráfico apenas no final da execução
 
+
+# Scheduler para Armazenar valor de Clock, Memória, Frequência e Load
+def computer_data():
+    print('Data assigned to thread:' +
+          '{}'.format(threading.current_thread().name))
+    load = np.array(psu.cpu_percent(interval=0.5, percpu=True))
+    load = load.tolist()
+    # Append das Listas nos Dicionários para Elaboração do Plot
+    cpu_dicc['cpu1'] += [load[0]]
+    cpu_dicc['cpu2'] += [load[1]]
+    cpu_dicc['cpu3'] += [load[2]]
+    cpu_dicc['cpu4'] += [load[3]]
+
+    # Append do tempo para Elaboração do Plot
+    time_list = [(timeit.default_timer())-script_init]
+    time_dicc['time'] += [time_list[0]]
+    # Append da Memória para Elaboração do Plot
+    memory_percent = [psu.virtual_memory()[2]]
+    memory_dicc['memory'] += [memory_percent[0]]
+
+    # Elaboração do Plot após Script Finalizado usando Plotly
+    if flag == 1:
+        trace0 = go.Scatter(
+            y=cpu_dicc['cpu1'],
+            x=time_dicc['time'],
+            name='CPU 01',
+            line=dict(
+                      color=('rgb(74, 140, 121)'),
+                      width=4,)
+        )
+        trace1 = go.Scatter(
+            y=cpu_dicc['cpu2'],
+            x=time_dicc['time'],
+            name='CPU 02',
+            line=dict(
+                      color=('rgb(72, 191, 147)'),
+                      width=4,)
+        )
+        trace2 = go.Scatter(
+            y=cpu_dicc['cpu3'],
+            x=time_dicc['time'],
+            name='CPU 03',
+            line=dict(
+                      color=('rgb(216, 111, 73)'),
+                      width=4,)
+        )
+        trace3 = go.Scatter(
+            y=cpu_dicc['cpu4'],
+            x=time_dicc['time'],
+            name='CPU 04',
+            line=dict(
+                      color=('rgb(165, 80, 72)'),
+                      width=4,)
+        )
+        trace4 = go.Bar(
+            y=memory_dicc['memory'],
+            x=time_dicc['time'],
+            text=memory_dicc['memory'],
+            name='Memory Usage',
+            textposition='auto',
+            marker=dict(
+                color='rgb(158,202,225)',
+                line=dict(
+                    color='rgb(8,48,107)',
+                    width=1.5),
+                ),
+            opacity=0.6
+        )
+        # Plotagem do Primeiro Gráfico (Múltiplos CPU's)
+        fig = tools.make_subplots(rows=2, cols=2,
+                                  subplot_titles=('CPU 1', 'CPU 2',
+                                                  'CPU 3', 'CPU 4'))
+        fig.append_trace(trace0, 1, 1)
+        fig.append_trace(trace1, 1, 2)
+        fig.append_trace(trace2, 2, 1)
+        fig.append_trace(trace3, 2, 2)
+        fig['layout'].update(height=800, width=1000,
+                             title='CPU Load with Intel Full Distribution' +
+                                   ' for Python (with Threading & Scheduling)',
+                             xaxis=dict(title='Time (s)'),
+                             yaxis=dict(title='Load (%)'),
+                             )
+        plotly.offline.plot(fig, image='jpeg', image_filename='CPU_sub_conda')
+        # Plotagem do Segundo Gráfico (CPU's em Conjunto e Memória)
+        time.sleep(3)  # Sleep para Efetuação da Impressão do Primeiro Plot
+        fig = tools.make_subplots(rows=2, cols=1)
+        fig.append_trace(trace0, 1, 1)
+        fig.append_trace(trace1, 1, 1)
+        fig.append_trace(trace2, 1, 1)
+        fig.append_trace(trace3, 1, 1)
+        fig.append_trace(trace4, 2, 1)
+        fig['layout'].update(height=800, width=1000,
+                             title='CPU Load with Intel Full Distribution' +
+                                   ' for Python (with Threading & Scheduling)',
+                             xaxis=dict(title='Time (s)'),
+                             yaxis=dict(title='Load (%)'),
+                             )
+        plotly.offline.plot(fig, image='jpeg', image_filename='CPU&Mem_conda')
+
+
+# Definição do Thread para elaboração da armazenagem de dados em paralelo
+def run_threaded(computer_data):
+    job_thread = threading.Thread(target=computer_data)
+    job_thread.start()
+
+
+# 0.5 seg para armazenagem de dados
+schedule.every(0.5).seconds.do(run_threaded, computer_data)
 
 # Estimation parameter of EKF
 Q = np.diag([0.1, 0.1, np.deg2rad(1.0), 1.0])**2  # predict state covariance
@@ -193,127 +301,6 @@ def plot_covariance_ellipse(xEst, PEst):  # pragma: no cover
     plt.plot(px, py, "--r")
 
 
-# Scheduler para Armazenar valor de Clock, Memória, Frequência e Load
-def computer_data():
-
-    load = np.array(psu.cpu_percent(interval=0.5, percpu=True))
-    load = load.tolist()
-    # Append das Listas nos Dicionários para Elaboração do Plot
-    cpu_dicc['cpu1'] += [load[0]]
-    cpu_dicc['cpu2'] += [load[1]]
-    cpu_dicc['cpu3'] += [load[2]]
-    cpu_dicc['cpu4'] += [load[3]]
-
-    # Append do tempo para Elaboração do Plot
-    time_list = [(timeit.default_timer())-time_script_init]
-    time_dicc['time'] += [time_list[0]]
-    # Append da Memória para Elaboração do Plot
-    memory_percent = [psu.virtual_memory()[2]]
-    memory_dicc['memory'] += [memory_percent[0]]
-    # Elaboração do Plot após Script Finalizado usando Plotly
-    if flag == 1:
-        trace0 = go.Scatter(
-            y=cpu_dicc['cpu1'],
-            x=time_dicc['time'],
-            name='CPU 01',
-            line=dict(
-                      color=('rgb(74, 140, 121)'),
-                      width=4,)
-        )
-        trace1 = go.Scatter(
-            y=cpu_dicc['cpu2'],
-            x=time_dicc['time'],
-            name='CPU 02',
-            line=dict(
-                      color=('rgb(72, 191, 147)'),
-                      width=4,)
-        )
-        trace2 = go.Scatter(
-            y=cpu_dicc['cpu3'],
-            x=time_dicc['time'],
-            name='CPU 03',
-            line=dict(
-                      color=('rgb(216, 111, 73)'),
-                      width=4,)
-        )
-        trace3 = go.Scatter(
-            y=cpu_dicc['cpu4'],
-            x=time_dicc['time'],
-            name='CPU 04',
-            line=dict(
-                      color=('rgb(165, 80, 72)'),
-                      width=4,)
-        )
-        trace4 = go.Bar(
-            y=memory_dicc['memory'],
-            x=time_dicc['time'],
-            text=memory_dicc['memory'],
-            name='Memory Usage',
-            textposition='auto',
-            marker=dict(
-                color='rgb(158,202,225)',
-                line=dict(
-                    color='rgb(8,48,107)',
-                    width=1.5),
-                ),
-            opacity=0.6
-        )
-        # Plotagem do Primeiro Gráfico (Múltiplos CPU's)
-        fig = tools.make_subplots(rows=2, cols=2,
-                                  subplot_titles=('CPU 1', 'CPU 2',
-                                                  'CPU 3', 'CPU 4'))
-        fig.append_trace(trace0, 1, 1)
-        fig.append_trace(trace1, 1, 2)
-        fig.append_trace(trace2, 2, 1)
-        fig.append_trace(trace3, 2, 2)
-        fig['layout'].update(height=800, width=1000,
-                             title='CPU Load with Intel Full Distribution' +
-                                   ' for Python (with Threading & Scheduling)',
-                             xaxis=dict(title='Time (s)'),
-                             yaxis=dict(title='Load (%)'),
-                             )
-        plotly.offline.plot(fig, image='jpeg', image_filename='CPU_lIST')
-        # Plotagem do Segundo Gráfico (CPU's em Conjunto e Memória)
-        time.sleep(5)  # Sleep para Efetuação da Impressão do Primeiro Plot
-        fig = tools.make_subplots(rows=2, cols=1)
-        fig.append_trace(trace0, 1, 1)
-        fig.append_trace(trace1, 1, 1)
-        fig.append_trace(trace2, 1, 1)
-        fig.append_trace(trace3, 1, 1)
-        fig.append_trace(trace4, 2, 1)
-        fig['layout'].update(height=800, width=1000,
-                             title='CPU Load with Intel Full Distribution' +
-                                   ' for Python (with Threading & Scheduling)',
-                             xaxis=dict(title='Time (s)'),
-                             yaxis=dict(title='Load (%)'),
-                             )
-        plotly.offline.plot(fig, image='jpeg', image_filename='styled-line')
-
-
-# Definição do Thread para elaboração da armazenagem de dados em paralelo
-def run_threaded(computer_data):
-    job_thread = threading.Thread(target=computer_data)
-    job_thread.start()
-
-
-# 0.5 seg para armazenagem de dados
-schedule.every(0.5).seconds.do(run_threaded, computer_data)
-
-
-# Finalização dos Contadores
-time_process_end = pt()
-time_script_end = timeit.default_timer()
-process_time = time_process_end - time_process_init
-time_script = time_script_end - time_script_init
-
-print("Tempo do Processo: ", process_time)
-print("Tempo do Script: ", time_script)
-
-# Contadores para o Main
-time_process_main = pt()  # Contador de processo
-time_script_main = timeit.default_timer()  # Contador Benchmark
-
-
 def main():
     print("---------------INICIO DA SIMULAÇÃO----------------")
     print(__file__ + " start!!")
@@ -333,7 +320,13 @@ def main():
     hxDR = xTrue
     hz = np.zeros((2, 1))
 
+    # Contadores para o Loop
+    process_loop_init = pt()  # Contador de processo
+    script_loop_init = timeit.default_timer()  # Contador Benchmark
+
     while SIM_TIME >= time:
+        print('Task SIMULATION assigned to thread:' +
+              '{}'.format(threading.current_thread().name))
         time += DT
         schedule.run_pending()
         u = calc_input()
@@ -361,19 +354,23 @@ def main():
             plt.grid(True)
             plt.pause(0.001)
 
+    # Finalização dos Contadores Loop
+    process_loop = pt() - process_loop_init
+    script_loop = timeit.default_timer() - script_loop_init
+    print("--------------------------------------------------")
+    print("Tempo do Processo Loop: ", process_loop)
+    print("Tempo do Script: Loop: ", script_loop, "\n")
+
 
 if __name__ == '__main__':
     main()
 
-# Finalização dos Contadores Main
-process_time_main = pt() - time_process_main
-time_script_main = timeit.default_timer() - time_script_main
 
-print("Tempo do Processo Main: ", process_time_main)
-print("Tempo do Script: Main: ", time_script_main, "\n")
-print("Tempo do Processo Total: ", process_time_main+process_time)
-print("Tempo do Script: Main: ", time_script_main+time_script, "\n")
+# Finalização dos Contadores
+process_end = pt() - process_init
+script_end = timeit.default_timer() - script_init
 print("----------------FINAL DA SIMULAÇÃO----------------")
-print(cpu_dicc.values())
-print(time_dicc.values())
+print("Tempo do Processo Total: ", process_end)
+print("Tempo do Script: Main: ", script_end, "\n")
+print("--------------------------------------------------")
 flag = 1

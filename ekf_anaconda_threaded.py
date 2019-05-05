@@ -38,9 +38,9 @@ cpu_dicc = {'cpu1': [], 'cpu2': [], 'cpu3': [], 'cpu4': []}
 time_dicc = {'time': []}
 memory_dicc = {'memory': []}
 
-# Contadores
-time_process_init = pt()  # Contador de processo
-time_script_init = timeit.default_timer()  # Contador Benchmark
+# Contadores para Programa Inteiro
+process_init = pt()  # Contador de processo
+script_init = timeit.default_timer()  # Contador Benchmark
 flag = 0  # Flag de rotina para plotar o gráfico apenas no final da execução
 
 
@@ -57,7 +57,7 @@ def computer_data():
     cpu_dicc['cpu4'] += [load[3]]
 
     # Append do tempo para Elaboração do Plot
-    time_list = [(timeit.default_timer())-time_script_init]
+    time_list = [(timeit.default_timer())-script_init]
     time_dicc['time'] += [time_list[0]]
     # Append da Memória para Elaboração do Plot
     memory_percent = [psu.virtual_memory()[2]]
@@ -301,20 +301,6 @@ def plot_covariance_ellipse(xEst, PEst):  # pragma: no cover
     plt.plot(px, py, "--r")
 
 
-# Finalização dos Contadores
-time_process_end = pt()
-time_script_end = timeit.default_timer()
-process_time = time_process_end - time_process_init
-time_script = time_script_end - time_script_init
-
-print("Tempo do Processo: ", process_time)
-print("Tempo do Script: ", time_script)
-
-# Contadores para o Main
-time_process_main = pt()  # Contador de processo
-time_script_main = timeit.default_timer()  # Contador Benchmark
-
-
 def main():
     print("---------------INICIO DA SIMULAÇÃO----------------")
     print(__file__ + " start!!")
@@ -333,6 +319,10 @@ def main():
     hxTrue = xTrue
     hxDR = xTrue
     hz = np.zeros((2, 1))
+
+    # Contadores para o Loop
+    process_loop_init = pt()  # Contador de processo
+    script_loop_init = timeit.default_timer()  # Contador Benchmark
 
     while SIM_TIME >= time:
         print('Task SIMULATION assigned to thread:' +
@@ -364,19 +354,25 @@ def main():
             plt.grid(True)
             plt.pause(0.001)
 
+    # Finalização dos Contadores Loop
+    process_loop = pt() - process_loop_init
+    script_loop = timeit.default_timer() - script_loop_init
+    print("--------------------------------------------------")
+    print("Tempo do Processo Loop: ", process_loop)
+    print("Tempo do Script: Loop: ", script_loop, "\n")
+
 
 if __name__ == '__main__':
     main()
 
-# Finalização dos Contadores Main
-process_time_main = pt() - time_process_main
-time_script_main = timeit.default_timer() - time_script_main
 
-print("Tempo do Processo Main: ", process_time_main)
-print("Tempo do Script: Main: ", time_script_main, "\n")
-print("Tempo do Processo Total: ", process_time_main+process_time)
-print("Tempo do Script: Main: ", time_script_main+time_script, "\n")
+# Finalização dos Contadores
+process_end = pt() - process_init
+script_end = timeit.default_timer() - script_init
 print("----------------FINAL DA SIMULAÇÃO----------------")
+print("Tempo do Processo Total: ", process_end)
+print("Tempo do Script: Main: ", script_end, "\n")
+print("--------------------------------------------------")
 flag = 1
-print(cpu_dicc.values())
-print(time_dicc.values())
+# print(cpu_dicc.values())
+# print(time_dicc.values())

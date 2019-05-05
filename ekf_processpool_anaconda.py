@@ -5,10 +5,12 @@ import psutil as psu
 import timeit
 import time
 from time import process_time as pt
+import schedule
 import plotly.graph_objs as go
 import plotly.offline
 from plotly import tools
 from concurrent.futures import ProcessPoolExecutor
+import threading
 
 
 # Alocação de Memória para Variáveis Utilizadas no Plot
@@ -17,9 +19,8 @@ time_dicc = {'time': []}
 memory_dicc = {'memory': []}
 
 # Contadores
-time_process_init = pt()  # Contador de processo
-time_script_init = timeit.default_timer()  # Contador Benchmark
-flag = 0  # Flag de rotina para plotar o gráfico apenas no final da execução
+process_init = pt()  # Contador de processo
+script_init = timeit.default_timer()  # Contador Benchmark
 
 
 # Estimation parameter of EKF
@@ -175,7 +176,7 @@ def plot_covariance_ellipse(xEst, PEst):  # pragma: no cover
 def computer_data():
     # print('Task DATA assigned to thread:' +
     # '{}'.format(threading.current_thread().name))
-    load = np.array(psu.cpu_percent(interval=0.1, percpu=True))
+    load = np.array(psu.cpu_percent(interval=0.5, percpu=True))
     load = load.tolist()
     # Append das Listas nos Dicionários para Elaboração do Plot
     cpu_dicc['cpu1'] += [load[0]]
@@ -184,11 +185,21 @@ def computer_data():
     cpu_dicc['cpu4'] += [load[3]]
 
     # Append do tempo para Elaboração do Plot
-    time_list = [(timeit.default_timer())-time_script_init]
+    time_list = [(timeit.default_timer())-script_init]
     time_dicc['time'] += [time_list[0]]
     # Append da Memória para Elaboração do Plot
     memory_percent = [psu.virtual_memory()[2]]
     memory_dicc['memory'] += [memory_percent[0]]
+
+
+# Definição do Thread para elaboração da armazenagem de dados em paralelo
+def run_threaded(computer_data):
+    job_thread = threading.Thread(target=computer_data)
+    job_thread.start()
+
+
+# 0.5 seg para armazenagem de dados
+schedule.every(0.5).seconds.do(run_threaded, computer_data)
 
 
 def ekf_analysis():
@@ -206,11 +217,15 @@ def ekf_analysis():
     hxTrue = xTrue
     hxDR = xTrue
     hz = np.zeros((2, 1))
+    # Contadores para o Loop
+    process_loop_init = pt()  # Contador de processo
+    script_loop_init = timeit.default_timer()  # Contador Benchmark
 
     while SIM_TIME >= time:
         # print('Task SIMULATION assigned to thread:' +
         # '{}'.format(threading.current_thread().name))
         time += DT
+        schedule.run_pending()
         u = calc_input()
         xTrue, z, xDR, ud = observation(xTrue, xDR, u)
 
@@ -236,8 +251,20 @@ def ekf_analysis():
             plt.grid(True)
             plt.pause(0.001)
 
-            if time >= 50:
-                plot()
+    # Finalização dos Contadores Loop
+    process_loop = pt() - process_loop_init
+    script_loop = timeit.default_timer() - script_loop_init
+    print("--------------------------------------------------")
+    print("Tempo do Processo Loop: ", process_loop)
+    print("Tempo do Script: Loop: ", script_loop, "\n")
+
+    process_end = pt() - process_init
+    script_end = timeit.default_timer() - script_init
+    print("----------------FINAL DA SIMULAÇÃO----------------")
+    print("Tempo do Processo Total: ", process_end)
+    print("Tempo do Script: Main: ", script_end, "\n")
+    print("--------------------------------------------------")
+    plot()
 
 
 def plot():
@@ -297,14 +324,14 @@ def plot():
     fig.append_trace(trace3, 2, 2)
     fig['layout'].update(height=800, width=1000,
                          title='CPU LOAD with Anaconda Full Distribution' +
-                               ' for Python 3 (with Multiprocessing & ' +
-                               'Multithreading  & Scheduling)',
+                               ' for Python 3 (with Multiprocessing, ' +
+                               'Threading & Scheduling)',
                          xaxis=dict(title='Time (s)'),
                          yaxis=dict(title='Load (%)'),
                          )
     plotly.offline.plot(fig, image='jpeg', image_filename='CPU_sub_conda')
     # Plotagem do Segundo Gráfico (CPU's em Conjunto e Memória)
-    time.sleep(3)  # Sleep para Efetuação da Impressão do Primeiro Plot
+    time.sleep(5)  # Sleep para Efetuação da Impressão do Primeiro Plot
     fig = tools.make_subplots(rows=2, cols=1)
     fig.append_trace(trace0, 1, 1)
     fig.append_trace(trace1, 1, 1)
@@ -313,8 +340,8 @@ def plot():
     fig.append_trace(trace4, 2, 1)
     fig['layout'].update(height=800, width=1000,
                          title='CPU Load with Anaconda Full Distribution' +
-                               ' for Python (with Multiprocessing & ' +
-                               ' Multithreading & Scheduling)',
+                               ' for Python (with Multiprocessing,' +
+                               ' Threading & Scheduling)',
                          xaxis=dict(title='Time (s)'),
                          yaxis=dict(title='Load (%)'),
                          )
@@ -323,11 +350,8 @@ def plot():
 
 def main():
     print(__file__ + " start!!")
-    executor = ProcessPoolExecutor(max_workers=8)
-    task1 = executor.submit(ekf_analysis)
-    if task1.running() is True:
-        executor2 = ProcessPoolExecutor(max_workers=8)
-        executor2.map(computer_data, cpu_dicc)
+    executor = ProcessPoolExecutor(max_workers=None)
+    executor.submit(ekf_analysis)
 
 
 if __name__ == '__main__':
