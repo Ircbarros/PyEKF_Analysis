@@ -6,6 +6,20 @@ import simulation
 import cpu_data
 
 
+def simulate_serial():
+    print('Iniciando Modo Serial:')
+    process_init = pt()  # Contador de processo
+    script_init = timeit.default_timer()  # Contador Benchmark
+
+    simulation.main()
+
+    process_end = pt() - process_init
+    script_end = timeit.default_timer() - script_init
+    print('Tempo de Finalização do Processo (Serial): ', process_end)
+    print('Tempo de Finalização do Script (Serial): ', script_end)
+    print('--------------------------')
+
+
 def simulate_threading():
     # Contadores
     print('Iniciando Multithreading:\n')
