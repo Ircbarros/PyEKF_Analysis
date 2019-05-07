@@ -1,7 +1,6 @@
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-import psutil as psu
 import timeit
 import time
 from time import process_time as pt
@@ -9,18 +8,19 @@ import schedule
 import plotly.graph_objs as go
 import plotly.offline
 from plotly import tools
-from concurrent.futures import ThreadPoolExecutor
+import psutil as psu
 import threading
+
+
+# Contadores
+process_init = pt()  # Contador de processo
+script_init = timeit.default_timer()  # Contador Benchmark
 
 
 # Alocação de Memória para Variáveis Utilizadas no Plot
 cpu_dicc = {'cpu1': [], 'cpu2': [], 'cpu3': [], 'cpu4': []}
 time_dicc = {'time': []}
 memory_dicc = {'memory': []}
-
-# Contadores
-process_init = pt()  # Contador de processo
-script_init = timeit.default_timer()  # Contador Benchmark
 
 
 # Estimation parameter of EKF
@@ -174,9 +174,9 @@ def plot_covariance_ellipse(xEst, PEst):  # pragma: no cover
 
 # Scheduler para Armazenar valor de Clock, Memória, Frequência e Load
 def computer_data():
-    # print('Task DATA assigned to thread:' +
-    # '{}'.format(threading.current_thread().name))
-    load = np.array(psu.cpu_percent(interval=0.5, percpu=True))
+    print('DATA assigned to thread:' +
+          '{}'.format(threading.current_thread().name))
+    load = np.array(psu.cpu_percent(interval=0.1, percpu=True))
     load = load.tolist()
     # Append das Listas nos Dicionários para Elaboração do Plot
     cpu_dicc['cpu1'] += [load[0]]
@@ -194,8 +194,8 @@ def computer_data():
 
 # Definição do Thread para elaboração da armazenagem de dados em paralelo
 def run_threaded(computer_data):
-    executor = threading.Thread(max_workers=8)
-    executor.submit(computer_data)
+    job_thread = threading.Thread(target=computer_data, args=(1,), daemon=True)
+    job_thread.start()
 
 
 # 0.5 seg para armazenagem de dados
@@ -222,8 +222,8 @@ def ekf_analysis():
     script_loop_init = timeit.default_timer()  # Contador Benchmark
 
     while SIM_TIME >= time:
-        # print('Task SIMULATION assigned to thread:' +
-        # '{}'.format(threading.current_thread().name))
+        print('SIMULATION assigned to thread:' +
+              '{}'.format(threading.current_thread().name))
         time += DT
         schedule.run_pending()
         u = calc_input()
@@ -257,13 +257,6 @@ def ekf_analysis():
     print("--------------------------------------------------")
     print("Tempo do Processo Loop: ", process_loop)
     print("Tempo do Script: Loop: ", script_loop, "\n")
-
-    process_end = pt() - process_init
-    script_end = timeit.default_timer() - script_init
-    print("----------------FINAL DA SIMULAÇÃO----------------")
-    print("Tempo do Processo Total: ", process_end)
-    print("Tempo do Script: Main: ", script_end, "\n")
-    print("--------------------------------------------------")
     plot()
 
 
@@ -324,8 +317,7 @@ def plot():
     fig.append_trace(trace3, 2, 2)
     fig['layout'].update(height=800, width=1000,
                          title='CPU LOAD with Anaconda Full Distribution' +
-                               ' for Python 3 (with Multiprocessing, ' +
-                               ' Threading & Scheduling)',
+                               ' for Python 3 (with Threading & Scheduling)',
                          xaxis=dict(title='Time (s)'),
                          yaxis=dict(title='Load (%)'),
                          )
@@ -340,8 +332,7 @@ def plot():
     fig.append_trace(trace4, 2, 1)
     fig['layout'].update(height=800, width=1000,
                          title='CPU Load with Anaconda Full Distribution' +
-                               ' for Python (with Multiprocessing, ' +
-                               ' Threading & Scheduling)',
+                               ' for Python (with Threading & Scheduling)',
                          xaxis=dict(title='Time (s)'),
                          yaxis=dict(title='Load (%)'),
                          )
@@ -350,8 +341,13 @@ def plot():
 
 def main():
     print(__file__ + " start!!")
-    executor = ThreadPoolExecutor(max_workers=8)
-    executor.submit(ekf_analysis)
+    ekf_analysis()
+    process_end = pt() - process_init
+    script_end = timeit.default_timer() - script_init
+    print("----------------FINAL DA SIMULAÇÃO----------------")
+    print("Tempo do Processo Total: ", process_end)
+    print("Tempo do Script: Main: ", script_end, "\n")
+    print("--------------------------------------------------")
 
 
 if __name__ == '__main__':
