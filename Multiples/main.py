@@ -56,6 +56,7 @@ def simulate_processing():
 
 
 def main():
+    simulate_serial()
     simulate_threading()
     simulate_processing()
     cpu_data.plot()
