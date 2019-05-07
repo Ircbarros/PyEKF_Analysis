@@ -194,7 +194,7 @@ def computer_data():
 
 # Definição do Thread para elaboração da armazenagem de dados em paralelo
 def run_threaded(computer_data):
-    job_thread = threading.Thread(target=computer_data, args=(1,), daemon=True)
+    job_thread = threading.Thread(target=computer_data, daemon=True)
     job_thread.start()
 
 
