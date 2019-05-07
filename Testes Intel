@@ -1,0 +1,82 @@
+INTEL
+ipython --pylab qt4 [python file.py]
+Processo - Wall-time
+Script - User + OS
+
+Function Call
+-----------
+Tempo do Processo Loop:  41.298139754
+Tempo do Script: Loop:  93.04120473200055 
+
+Tempo do Processo Loop:  41.298139754
+Tempo do Script: Loop:  93.04120473200055 
+
+Only Scheduling
+-----------
+Tempo do Processo Loop:  43.737038769
+Tempo do Script: Loop:  53.708442292000655 
+
+Tempo do Processo Total:  44.626946772
+Tempo do Script: Main:  59.69188360899989 
+
+
+Threading
+-----------
+Tempo do Processo Loop:  45.480569058
+Tempo do Script: Loop:  46.83219668899983 
+
+Tempo do Processo Total:  46.309777004000004
+Tempo do Script: Main:  52.671347387000424 
+
+ThreadingPool
+----------------
+Tempo do Processo Loop:  43.989079481999994
+Tempo do Script: Loop:  53.81950873200003 
+
+Tempo do Processo Total:  44.936211262
+Tempo do Script: Main:  55.784153341001 
+
+ProcessPool
+----------------
+Tempo do Processo Loop:  43.832916619
+Tempo do Script: Loop:  53.64387339300083 
+
+Tempo do Processo Total:  44.336211262
+Tempo do Script: Main:  59.631017027999405 
+
+
+ProcessPool + Threading
+------------------------
+Tempo do Processo Loop:  43.423457217
+Tempo do Script: Loop:  53.32103144199937 
+
+
+Tempo do Script: Main:  59.393855489001
+
+Multiples
+--------------------
+Serial
+
+Tempo do Processo Loop (Simulation):  42.754070922000004
+Tempo do Script: Loop (Simulation):  44.288616224999714 
+
+Tempo de Finalização do Processo (Serial):  42.754355667
+Tempo de Finalização do Script (Serial):  44.28890424899873
+
+
+Threading
+
+Tempo do Processo Loop (Simulation):  45.311617891000004
+Tempo do Script: Loop (Simulation):  45.96658677199957 
+
+Tempo de Finalização do Processo (Threading):  45.312794994
+Tempo de Finalização do Script (Threading):  45.9677575780006
+
+Process
+Tempo do Processo Loop (Simulation):  44.088663593999996
+Tempo do Script: Loop (Simulation):  44.68330480199984 
+
+Tempo de Finalização do Processo (Processing):  44.093583644999995
+Tempo de Finalização do Script (Processing):  44.68827553800111
+
+	

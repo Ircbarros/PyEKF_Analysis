@@ -1,0 +1,82 @@
+Anaconda 
+
+Processo - Wall-time
+Script - User + OS
+
+Function Call
+-----------
+Tempo do Processo Loop:  33.992857563
+Tempo do Script: Loop:  85.99840874199981
+
+Tempo do Processo Loop:  33.992857563
+Tempo do Script: Loop:  85.99840874199981 
+
+Only Scheduling
+-----------
+Tempo do Processo Loop:  44.090152446
+Tempo do Script: Loop:  54.26601998100068 
+
+Tempo do Processo Total:  44.958077810999995
+Tempo do Script: Main:  66.10044014100004 
+
+
+Threading
+-----------
+Tempo do Processo Loop:  46.289146918
+Tempo do Script: Loop:  47.56296804300018 
+
+Tempo do Processo Total:  47.203792543
+Tempo do Script: Main:  59.21603499599951 
+
+ThreadingPool
+----------------
+Tempo do Processo Loop:  43.759296523
+Tempo do Script: Loop:  54.052388732998224 
+
+Tempo do Processo Total:  44.671525986
+Tempo do Script: Main:  61.950881085998844 
+
+ProcessPool
+----------------
+Tempo do Processo Loop:  41.389257245
+Tempo do Script: Loop:  51.03696052799933 
+
+Tempo do Processo Loop:  41.389257245
+Tempo do Script: Main:  58.76778533000106 
+
+ThreadPool + Threading
+------------------------
+Tempo do Processo Loop:  42.564162255999996
+Tempo do Script: Loop:  43.93191167999976 
+
+Tempo do Processo Total:  43.335445175
+Tempo do Script: Main:  51.66256972300107
+
+Multiples
+----------------
+Serial
+
+Tempo do Processo Loop (Simulation):  33.533663176
+Tempo do Script: Loop (Simulation):  37.77559177100011 
+
+Tempo de Finalização do Processo (Serial):  33.533901753
+Tempo de Finalização do Script (Serial):  37.77583307600071
+
+Threading
+
+Tempo do Processo Loop (Simulation):  34.13271575899999
+Tempo do Script: Loop (Simulation):  34.91389519800032 
+
+Tempo de Finalização do Processo (Threading):  34.133058287
+Tempo de Finalização do Script (Threading):  34.91427236399977
+
+Processing
+
+Tempo do Processo Loop (Simulation):  35.73851739599999
+Tempo do Script: Loop (Simulation):  36.43690946700008 
+
+Tempo de Finalização do Processo (Processing):  35.740825286
+Tempo de Finalização do Script (Processing):  36.47227209200173
+
+
+
