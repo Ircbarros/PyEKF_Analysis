@@ -319,14 +319,14 @@ def plot():
     fig.append_trace(trace3, 2, 2)
     fig['layout'].update(height=800, width=1000,
                          title='CPU LOAD with Anaconda Full Distribution' +
-                               ' for Python 3 (with MultiThreading' +
+                               ' for Python 3 (with Multiprocessing' +
                                ' & Scheduling)',
                          xaxis=dict(title='Time (s)'),
                          yaxis=dict(title='Load (%)'),
                          )
     plotly.offline.plot(fig, image='jpeg', image_filename='CPU_sub_conda')
     # Plotagem do Segundo Gráfico (CPU's em Conjunto e Memória)
-    time.sleep(1)  # Sleep para Efetuação da Impressão do Primeiro Plot
+    time.sleep(5)  # Sleep para Efetuação da Impressão do Primeiro Plot
     fig = tools.make_subplots(rows=2, cols=1)
     fig.append_trace(trace0, 1, 1)
     fig.append_trace(trace1, 1, 1)
@@ -335,7 +335,7 @@ def plot():
     fig.append_trace(trace4, 2, 1)
     fig['layout'].update(height=800, width=1000,
                          title='CPU Load with Anaconda Full Distribution' +
-                               ' for Python 3 (with MultiThreading' +
+                               ' for Python 3 (with Multiprocessing' +
                                ' & Scheduling)',
                          xaxis=dict(title='Time (s)'),
                          yaxis=dict(title='Load (%)'),
